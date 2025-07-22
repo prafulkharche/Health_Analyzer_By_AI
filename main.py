@@ -1,16 +1,32 @@
-# main.py
-
 from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
+import os
+import requests
+
+MODEL_PATH = "bert_model"
+TOKENIZER_PATH = "tokenizer"
+
+MODEL_FILE = "bert_model.pkl"
+MODEL_URL = "https://drive.google.com/file/d/1PAZk8v16f5-7vwzECxPQ1CH0CRnh5H6x/view?usp=drive_link"  # Replace with real ID
+
+def download_model():
+    if not os.path.exists(MODEL_FILE):
+        print("Downloading model...")
+        r = requests.get(MODEL_URL)
+        with open(MODEL_FILE, "wb") as f:
+            f.write(r.content)
+        print("Model downloaded.")
+
+download_model()
 
 # Load tokenizer and model
-tokenizer = BertTokenizer.from_pretrained("tokenizer")
-model = BertForSequenceClassification.from_pretrained("bert_model")
+tokenizer = BertTokenizer.from_pretrained(TOKENIZER_PATH)
+model = BertForSequenceClassification.from_pretrained(MODEL_PATH)
+model.load_state_dict(torch.load(MODEL_FILE, map_location=torch.device("cpu")))
 model.eval()
 
-# Class labels
 id2label = {
     0: "cold",
     1: "fever",
